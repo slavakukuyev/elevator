@@ -1,7 +1,7 @@
 const {
     MOVING_TS = 2000,
     WAITING_TS = 2000,
-    HOLD_TS = 1000 * 60 * 5, // 5 minutes
+    HOLD_TS = 1000,// * 60 * 5, // 5 minutes
     MAX_FLOOR = 5,
     MIN_FLOOR = 0,
     DEFAULT_FLOOR = 0,
@@ -60,79 +60,62 @@ class ElevatorClass {
         this.move()
     }
 
+    isMoveUp() {
+        if (this.pressedInside[this.currentFloor]) {
+            this.next();
+            return;
+        }
+
+        if (this.currentFloor == MAX_FLOOR) {
+            this.direction = 'Down';
+            console.log('direction changed to Down')
+            this.move();
+            return;
+        }
+
+        //check where the first button i pressed 
+        for (let i = this.currentFloor + 1; i <= MAX_FLOOR; i++) {
+            if (this.pressedInside[i]) {
+                this.moveUp();
+                return
+            }
+        }
+
+        if (this.buttonsPressed) {
+            this.direction = 'Down'
+            this.move();
+            return;
+        }
+
+        this.holdOn();
+    }
+
+    holdOn() {
+        if (this.holdOnTimer) clearTimeout(this.holdOnTimer);
+
+        console.log('Nothing pressed. Lift waiting');
+        this.holdOnTimer = setTimeout(() => {
+            if (this.currentFloor != DEFAULT_FLOOR)
+                this.pressInside(DEFAULT_FLOOR)
+        }, HOLD_TS)
+    }
+
     move() {
         if (this.movingTimer || this.opened) return;
 
-
         if (this.direction == 'Up') {
-
-            if (this.pressedInside[this.currentFloor]) {
-                this.next();
-                return;
-            }
-
-            if (this.currentFloor == MAX_FLOOR) {
-                this.direction = 'Down';
-                console.log('direction changed to Down')
-                this.move();
-                return;
-            }
-
-            //check where the first button i pressed 
-            for (let i = this.currentFloor + 1; i <= MAX_FLOOR; i++) {
-                if (this.pressedInside[i]) {
-                    this.moveUp();
-                    return
-                }
-            }
-
-            if(this.buttonsPressed) {
-                this.direction = 'Down'
-                this.move();
-                return;
-            }
+            this.isMoveUp()
+        } else if (this.direction == 'Down') {
+            this.isMoveDown();
         }
-
-        if (this.direction == 'Down') {
-            if (this.pressedInside[this.currentFloor]) {
-                this.next();
-                return;
-            }
-
-            if (this.currentFloor == MIN_FLOOR) {
-
-                this.direction = 'Up';
-                console.log('direction changed to Up')
-                this.move();
-                return;
-            }
-
-            for (let i = this.currentFloor - 1; i >= MIN_FLOOR; i--) {
-                if (this.pressedInside[i]) {
-                    this.moveDown();
-                    return
-                }
-            }
-
-            if(this.buttonsPressed) {
-                this.direction = 'Up'
-                this.move();
-                return;
-            }
-        }
-
-
-        console.log('nothing pressed waiting')
-        this.holdOnTimer = setTimeout(() => {
-            this.pressInside(DEFAULT_FLOOR)
-        }, HOLD_TS)
-
-
-
-
     }
 
     pressInside(floor) {
+        if (floor > MAX_FLOOR || floor < MIN_FLOOR) {
+            console.error('there is no floor: ', floor);
+            return;
+        }
+
         console.log('pressed inside: ', floor)
         this.pressedInside[floor] = 1;
         this.buttonsPressed++;
@@ -147,7 +130,12 @@ class ElevatorClass {
             this.pressedInside[this.currentFloor] = 0;
             this.buttonsPressed--;
             this.open();
+            return;
         }
+
+
+        this.move();
+
     }
 
     moveUp() {
@@ -156,6 +144,36 @@ class ElevatorClass {
             this.currentFloor++;
             this.next();
         }, MOVING_TS)
+    }
+
+    isMoveDown() {
+        if (this.pressedInside[this.currentFloor]) {
+            this.next();
+            return;
+        }
+
+        if (this.currentFloor == MIN_FLOOR) {
+
+            this.direction = 'Up';
+            console.log('direction changed to Up')
+            this.move();
+            return;
+        }
+
+        for (let i = this.currentFloor - 1; i >= MIN_FLOOR; i--) {
+            if (this.pressedInside[i]) {
+                this.moveDown();
+                return
+            }
+        }
+
+        if (this.buttonsPressed) {
+            this.direction = 'Up'
+            this.move();
+            return;
+        }
+
+        this.holdOn();
     }
 
     moveDown() {
