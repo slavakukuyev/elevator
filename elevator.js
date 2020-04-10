@@ -1,14 +1,15 @@
 const {
     MOVING_TS = 2000,
     WAITING_TS = 2000,
-    HOLD_TS = 1000,// * 60 * 5, // 5 minutes
+    HOLD_TS = 1000 * 60 * 5, // 5 minutes
     MAX_FLOOR = 5,
     MIN_FLOOR = 0,
     DEFAULT_FLOOR = 0,
+    DIRECTION_UP,
+    DIRECTION_DOWN,
 } = process.env;
 
-
-//LIFT is moving down.   please check move fnc of direction
+const { is_pressed } = require('./collections')
 
 class ElevatorClass {
     constructor(props = {}) {
@@ -18,7 +19,7 @@ class ElevatorClass {
         this.pressedInside = {};
         this.currentFloor = DEFAULT_FLOOR;
         this.opened = false;
-        this.direction = 'Up'
+        this.direction = DIRECTION_UP;
 
         this.buttonsPressed = 0;
 
@@ -67,8 +68,8 @@ class ElevatorClass {
         }
 
         if (this.currentFloor == MAX_FLOOR) {
-            this.direction = 'Down';
-            console.log('direction changed to Down')
+            this.direction = DIRECTION_DOWN;
+            console.log('direction changed to ', DIRECTION_DOWN)
             this.move();
             return;
         }
@@ -82,7 +83,7 @@ class ElevatorClass {
         }
 
         if (this.buttonsPressed) {
-            this.direction = 'Down'
+            this.direction = DIRECTION_DOWN
             this.move();
             return;
         }
@@ -103,9 +104,9 @@ class ElevatorClass {
     move() {
         if (this.movingTimer || this.opened) return;
 
-        if (this.direction == 'Up') {
+        if (this.direction == DIRECTION_UP) {
             this.isMoveUp()
-        } else if (this.direction == 'Down') {
+        } else if (this.direction == DIRECTION_DOWN) {
             this.isMoveDown();
         }
     }
@@ -122,7 +123,7 @@ class ElevatorClass {
         this.move();
     }
 
-    next() {//on moving
+    next() {
 
         this.movingTimer = undefined;
 
@@ -139,7 +140,7 @@ class ElevatorClass {
     }
 
     moveUp() {
-        console.log(this.name + ' is moving up...')
+        console.log(this.name + ' is moving %s...', DIRECTION_UP)
         this.movingTimer = setTimeout(() => {
             this.currentFloor++;
             this.next();
@@ -154,8 +155,8 @@ class ElevatorClass {
 
         if (this.currentFloor == MIN_FLOOR) {
 
-            this.direction = 'Up';
-            console.log('direction changed to Up')
+            this.direction = DIRECTION_UP;
+            console.log('direction changed to ', DIRECTION_UP)
             this.move();
             return;
         }
@@ -168,7 +169,7 @@ class ElevatorClass {
         }
 
         if (this.buttonsPressed) {
-            this.direction = 'Up'
+            this.direction = DIRECTION_UP
             this.move();
             return;
         }
@@ -177,15 +178,12 @@ class ElevatorClass {
     }
 
     moveDown() {
-        console.log(this.name + ' is moving down...')
+        console.log(this.name + ' is moving %s...', DIRECTION_DOWN)
         this.movingTimer = setTimeout(() => {
             this.currentFloor--;
             this.next();
         }, MOVING_TS)
     }
-
-
-
 
 }
 

@@ -1,4 +1,12 @@
+require('dotenv').config();
+
 const ElevatorClass = require("./elevator")
+const { turn_off, turn_on, get_pressed } = require('./collections');
+
+const {
+    DIRECTION_DOWN,
+    DIRECTION_UP,
+} = process.env
 
 let Lift1 = new ElevatorClass();
 
@@ -15,25 +23,19 @@ function start() {
             pressed_msg(info)
         }
     });
-
 }
 
 function pressed_msg(info) {
     let inputArr = info.split(',');
-    let number = parseInt(inputArr[0]);
+    let floor = parseInt(inputArr[0]);
 
-    Lift1.pressInside(number);
-    return;
+    let direction = inputArr[1];
 
-    if ((inputArr[1] === 'up'
-        || inputArr[1] === 'down')
-        && Number.isInteger(number) && !isNaN(number)) {
-        Lift1.pressInside(number, inputArr[1])
-    }
+    if (direction == DIRECTION_UP || direction == DIRECTION_DOWN) {
+        turn_on(direction, floor)
+        Lift1.move();
 
-    else {
-        console.log('Invalid direction or floor')
-    }
+    } else Lift1.pressInside(floor);
 }
 
 start()
